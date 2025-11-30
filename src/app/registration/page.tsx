@@ -4,6 +4,7 @@
 import React, { ChangeEvent, FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { User, Mail, Eye, EyeOff } from "lucide-react";
+import  {registrationAction} from "./registrationAction.action";
 
 // Import UI components from shadcn/ui
 import {
@@ -57,15 +58,15 @@ const Registration: React.FC = () => {
         setFormData((prev) => ({ ...prev, [name]: value }));
     };
 
-    // Handler: processes form submission (validation, API call, etc.)
-    const handleSubmit = (e: FormEvent) => {
-        try {
-            // TODO: Add form validation logic
-            // TODO: Add API call to register user
-        } catch (err) {
-            // TODO: Handle and display error messages
-        }
-    };
+    // // Handler: processes form submission (validation, API call, etc.)
+    // const handleSubmit = (e: FormEvent) => {
+    //     try {
+    //         // TODO: Add form validation logic
+    //         // TODO: Add API call to register user
+    //     } catch (err) {
+    //         // TODO: Handle and display error messages
+    //     }
+    // };
 
     return (
         // Outer wrapper: full viewport height, centered layout, light background
@@ -82,7 +83,7 @@ const Registration: React.FC = () => {
                     {/* Card header: contains avatar, title, and description */}
                     <CardHeader className="flex flex-col items-center pt-6">
                         {/* Avatar icon: blue circle with user icon */}
-                        <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white text-lg shadow-sm">
+                        <div className="w-12 h-12 rounded-full  bg-neutral-900 flex items-center justify-center text-white text-lg shadow-sm">
                             <User size={20} />
                         </div>
 
@@ -99,7 +100,7 @@ const Registration: React.FC = () => {
 
                     {/* Card content: contains all form fields */}
                     <CardContent className="p-4">
-                        <form className="space-y-3" onSubmit={handleSubmit}>
+                        <form className="space-y-3" action={registrationAction}>
                             {/* Full name field with left icon for visual clarity */}
                             <div>
                                 <Label className="text-xs font-medium">Full Name *</Label>
@@ -107,6 +108,7 @@ const Registration: React.FC = () => {
                                     <Input
                                         className="pl-10 py-2.5 text-sm"
                                         placeholder="Enter your full name"
+                                        name="name"
                                         value={formData.name}
                                         onChange={(e) =>
                                             handleInputChange("name", e.target.value)
@@ -125,6 +127,7 @@ const Registration: React.FC = () => {
                                 <div className="relative mt-1">
                                     <Input
                                         className="py-2.5 text-sm"
+                                        name="userName"
                                         placeholder="Choose a username"
                                         value={formData.userName}
                                         onChange={(e) =>
@@ -141,6 +144,7 @@ const Registration: React.FC = () => {
                                     <Input
                                         className="pl-10 py-2.5 text-sm"
                                         type="email"
+                                        name="email"
                                         placeholder="Enter your email"
                                         value={formData.email}
                                         onChange={(e) =>
@@ -171,6 +175,7 @@ const Registration: React.FC = () => {
                                         </SelectContent>
                                     </Select>
                                 </div>
+                                  <input type="hidden" name="role" value={formData.role} />
                             </div>
 
                             {/* Password field with toggle visibility button */}
@@ -182,6 +187,7 @@ const Registration: React.FC = () => {
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Create a strong password"
                                         value={formData.password}
+                                        name="password"
                                         onChange={(e) =>
                                             handleInputChange("password", e.target.value)
                                         }
@@ -208,6 +214,7 @@ const Registration: React.FC = () => {
                                         className="py-2.5 text-sm"
                                         type={showPassword ? "text" : "password"}
                                         placeholder="Confirm your password"
+                                        name="confirmPassword"
                                         value={formData.confirmPassword}
                                         onChange={(e) =>
                                             handleInputChange("confirmPassword", e.target.value)
