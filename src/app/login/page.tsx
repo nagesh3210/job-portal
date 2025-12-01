@@ -109,7 +109,7 @@ const LoginPage: React.FC = () => {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       className="pl-10 py-2.5 text-sm"
-                      placeholder="Create a strong password"
+                      placeholder="Enter password"
                       value={formData.password}
                       onChange={(e: ChangeEvent<HTMLInputElement>) =>
                         handleInputChange("password", e.target.value)

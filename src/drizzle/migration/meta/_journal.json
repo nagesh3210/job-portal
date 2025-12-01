@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "mysql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1764510767403,
+      "tag": "0000_living_wallop",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1764524736617,
+      "tag": "0001_sad_ezekiel_stane",
+      "breakpoints": true
+    }
+  ]
+}
