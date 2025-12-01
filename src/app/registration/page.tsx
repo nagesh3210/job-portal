@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import Link from "next/link";
+import { toast } from "sonner";
 
 // Type definition for the registration form data
 interface RegistrationFormData {
@@ -69,8 +70,15 @@ const Registration: React.FC = () => {
       role: formData.role,
     };
 
-    console.log("Registration Data:", registrationData);
-    await registrationAction(registrationData);
+    if(formData.password !== formData.confirmPassword) 
+      return alert("Passwords do not match");
+    
+    // console.log("Registration Data:", registrationData);
+    const result= await registrationAction(registrationData);
+  
+  if(result.status === "success") toast.success(result.message);
+  else toast.error(result.message);
+
   };
 
   return (
