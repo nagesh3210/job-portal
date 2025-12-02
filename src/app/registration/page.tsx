@@ -3,7 +3,7 @@
 import React, { ChangeEvent, FormEvent, useState } from "react";
 import { motion } from "framer-motion";
 import { User, Mail, Eye, EyeOff } from "lucide-react";
-import { registrationAction } from "./registrationAction.action";
+import { registrationAction } from "../../features/auth/server/auth.action";
 
 import {
   Card,
@@ -71,7 +71,7 @@ const Registration: React.FC = () => {
     };
 
     if(formData.password !== formData.confirmPassword) 
-      return alert("Passwords do not match");
+      return toast.error("Passwords do not match");
     
     // console.log("Registration Data:", registrationData);
     const result= await registrationAction(registrationData);
