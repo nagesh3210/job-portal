@@ -5,6 +5,7 @@ import { users } from "@/drizzle/schema";
 import argon2 from "argon2";
 import { eq, or } from "drizzle-orm";
 import { RegisterUserData, registerUserSchema } from "../auth.schema";
+import { createSessionAndSetCookies } from "./usecases/sessions";
 
 export const registrationAction = async (data: RegisterUserData) => {
   try {
@@ -78,6 +79,10 @@ export const loginAction = async (data:LoginData ) => {
 
 
         const [user] = await db.select().from(users).where(eq(users.email, email));
+
+
+          await createSessionAndSetCookies(user.id);
+ 
 
         console.log("Found User:", user);
 
