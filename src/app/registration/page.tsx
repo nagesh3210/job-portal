@@ -30,6 +30,8 @@ import {
   RegisterUserWithConfirmData,
   registerUserWithConfirmSchema,
 } from "@/features/auth/auth.schema";
+import { useRouter } from "next/navigation";
+import { json } from "zod";
 
 const Registration: React.FC = () => {
   const {
@@ -46,16 +48,35 @@ const Registration: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const onSubmit = async (data: RegisterUserWithConfirmData) => {
+  const router = useRouter();
+
+  const onSubmit = async (data: RegisterUserWithConfirmData) =>
+     {
 
     console.log("onSubmit — form data:", data);   // <--- add this line
 
     const result = await registrationAction(data);
 
     if (result.status === "success") toast.success(result.message);
-    else toast.error(result.message);
-  };
 
+
+    console.log(data)
+
+    if (result.status === "success") {
+      if (data.role === "applicant") {
+        router.push('/dashboard');
+      }
+      else if (data.role === "employer") {
+        router.push('/employer-dashboard');
+      }
+      else {
+        router.push('/');
+      }
+    }
+
+
+
+  }
 
 
   return (
@@ -262,5 +283,4 @@ const Registration: React.FC = () => {
     </div>
   );
 };
-
 export default Registration;
