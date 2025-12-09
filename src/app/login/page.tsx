@@ -20,6 +20,8 @@ import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginUserData, loginUserSchema } from "@/features/auth/auth.schema";
+import { useRouter } from "next/navigation";
+
 
 
 
@@ -35,6 +37,7 @@ const LoginPage: React.FC = () => {
   });
 
 
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -56,6 +59,17 @@ const LoginPage: React.FC = () => {
       else {
         toast.error(result.message);
       }
+        if (result.status === "success") {
+      if (result.data?.role === "applicant") {
+        router.push('/dashboard');
+      }
+      else if (result.data?.role === "employer") {
+        router.push('/employer-dashboard');
+      }
+      else {
+        router.push('/');
+      }
+    }
 
     }
     catch (error) {
