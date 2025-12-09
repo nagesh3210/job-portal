@@ -15,6 +15,13 @@
       "when": 1764524736617,
       "tag": "0001_sad_ezekiel_stane",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1765248550309,
+      "tag": "0002_spooky_the_stranger",
+      "breakpoints": true
     }
   ]
 }

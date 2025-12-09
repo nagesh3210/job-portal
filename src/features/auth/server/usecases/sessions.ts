@@ -11,6 +11,7 @@ type CreateSessionData = {
   ip: string;
   userId: number;
   token: string;
+  tx ?: DbClient
 };
 
 const createUserSession = async ({
@@ -18,14 +19,15 @@ const createUserSession = async ({
   userId,
   userAgent,
   ip,
+  tx = db,
 }: CreateSessionData) => {
   const hashedToken = crypto.createHash("sha-256").update(token).digest("hex");
 
-  const [session] = await db.insert(sessions).values({
+  const [session] = await tx.insert(sessions).values({
     id: hashedToken,
-    UserId:userId,
-    userAgent:userAgent,
-    ip:ip,
+    UserId: userId,
+    userAgent: userAgent,
+    ip: ip,
     expiresAt: new Date(Date.now() + SESSION_LIFETIME * 1000),
   });
   return session;
@@ -35,7 +37,12 @@ const getSessionToken = () => {
   return crypto.randomBytes(32).toString("hex").normalize();
 };
 
-export const createSessionAndSetCookies = async (userId: number) => {
+
+// Give me the type of the first parameter of the callback inside db.transaction — that's the tx object
+type DbClient = typeof db | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+
+export const createSessionAndSetCookies = async (userId: number, tx:DbClient=db) => {
   const token = getSessionToken();
   const ip = await getIPAddress();
   const headerList = await headers();
@@ -45,6 +52,7 @@ export const createSessionAndSetCookies = async (userId: number) => {
     userId: userId,
     userAgent: headerList.get("user-agent") || "",
     ip: ip,
+    tx
   });
 
   const cookieStore = await cookies();
@@ -54,14 +62,12 @@ export const createSessionAndSetCookies = async (userId: number) => {
     httpOnly: true,
     maxAge: SESSION_LIFETIME,
   });
-
 };
-
 
 export const validateSessionAndGetUser = async (token: string) => {
   const hashedToken = crypto.createHash("sha-256").update(token).digest("hex");
 
-   const [user] = await db
+  const [user] = await db
     .select({
       id: users.id,
       session: {
@@ -84,6 +90,27 @@ export const validateSessionAndGetUser = async (token: string) => {
     .where(eq(sessions.id, hashedToken))
     .innerJoin(users, eq(users.id, sessions.UserId));
 
-return user;
+  if (!user) return null;
 
-}
+    if (Date.now() >= user.session.expiresAt.getTime()) {
+    await invalidateSession(user.session.id);
+    return null;
+  }
+
+
+  if (
+    Date.now() >=
+    user.session.expiresAt.getTime() + SESSION_LIFETIME * 1000
+  ) {
+    await db
+      .update(sessions)
+      .set({ expiresAt: new Date(Date.now() + SESSION_LIFETIME * 1000) })
+      .where(eq(sessions.id, user.session.id));
+  }
+  return user;
+};
+
+
+export const invalidateSession = async (id: string) => {
+  await db.delete(sessions).where(eq(sessions.id, id));
+};
