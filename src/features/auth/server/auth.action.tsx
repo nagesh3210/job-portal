@@ -10,13 +10,10 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import crypto from "crypto";
 
-
-
 export const registrationAction = async (data: RegisterUserData) => {
   try {
-
-
     const { data: validatedData, error } = registerUserSchema.safeParse(data);
+
     if (error) {
       return {
         status: "error",
@@ -26,8 +23,10 @@ export const registrationAction = async (data: RegisterUserData) => {
 
     const { name, email, password, role, userName } = validatedData;
 
-
-    const [user] = await db.select().from(users).where(or(eq(users.email, email), eq(users.userName, userName)))
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(or(eq(users.email, email), eq(users.userName, userName)));
 
     if (user) {
       if (user.email === email) {
@@ -45,21 +44,26 @@ export const registrationAction = async (data: RegisterUserData) => {
     }
 
     const hashPassword = await argon2.hash(password);
-    db.transaction(async (tx)=>{
 
-    const [result] = await tx.insert(users).values({
-      name,
-      email,
-      password: hashPassword,
-      role,
-      userName,
+    let insertedUserId!: number;
+
+    // ONLY CHANGE: cookie removed from inside transaction
+    await db.transaction(async (tx) => {
+      const [result] = await tx.insert(users).values({
+        name,
+        email,
+        password: hashPassword,
+        role,
+        userName,
+      });
+
+      console.log("Inserted User ID:", result.insertId);
+
+      insertedUserId = Number(result.insertId);
     });
 
-    console.log("Inserted User ID:", result.insertId);
-
-    await createSessionAndSetCookies(Number(result.insertId), tx);
-    })
-
+    // ONLY CHANGE: cookie now set outside transaction
+    await createSessionAndSetCookies(insertedUserId);
 
     return {
       status: "success",
@@ -78,25 +82,17 @@ type LoginData = {
   password: string;
 };
 
-
 export const loginAction = async (data: LoginData) => {
-
   try {
-
-
     const { email, password } = data;
 
     console.log("Login Data Submitted:", data);
 
-
     const [user] = await db.select().from(users).where(eq(users.email, email));
-
-
-    await createSessionAndSetCookies(user.id);
-
 
     console.log("Found User:", user);
 
+    // ONLY CHANGE: check user BEFORE using user.id
     if (!user) {
       return {
         status: "error",
@@ -112,21 +108,22 @@ export const loginAction = async (data: LoginData) => {
         message: "Invalid email or password",
       };
     }
+
+    // ONLY CHANGE: moved here after validation
+    await createSessionAndSetCookies(user.id);
+
     return {
       status: "success",
       message: "Login successful",
-      data: user
+      data: user,
     };
-
-  }
-  catch (error) {
+  } catch (error) {
     return {
       status: "error",
       message: "Unkown error occurred during login",
     };
   }
-
-}
+};
 
 export const LogOutAction = async () => {
   const cookieStore = await cookies();
@@ -134,10 +131,12 @@ export const LogOutAction = async () => {
 
   if (!session) redirect("/login");
 
-  const hashedToken = crypto.createHash("sha-256").update(session).digest("hex");
+  const hashedToken = crypto
+    .createHash("sha-256")
+    .update(session)
+    .digest("hex");
 
   await invalidateSession(session);
 
-  return redirect("/login")
-
-}
+  return redirect("/login");
+};
