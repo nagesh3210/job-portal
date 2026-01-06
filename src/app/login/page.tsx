@@ -59,7 +59,9 @@ const LoginPage: React.FC = () => {
       else {
         toast.error(result.message);
       }
-        if (result.status === "success") {
+        if (result.status === "success") 
+        {
+          console.log("Login successful:", result.data);
       if (result.data?.role === "applicant") {
         router.push('/dashboard');
       }
