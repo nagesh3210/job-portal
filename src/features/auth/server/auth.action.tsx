@@ -1,11 +1,14 @@
 "use server";
 
 import { db } from "@/config/db";
-import { users } from "@/drizzle/schema";
+import { users, employers, applicants } from "@/drizzle/schema";
 import argon2 from "argon2";
 import { eq, or } from "drizzle-orm";
 import { RegisterUserData, registerUserSchema } from "../auth.schema";
-import { createSessionAndSetCookies, invalidateSession } from "./usecases/sessions";
+import {
+  createSessionAndSetCookies,
+  invalidateSession,
+} from "./usecases/sessions";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import crypto from "crypto";
@@ -47,7 +50,6 @@ export const registrationAction = async (data: RegisterUserData) => {
 
     let insertedUserId!: number;
 
-    // ONLY CHANGE: cookie removed from inside transaction
     await db.transaction(async (tx) => {
       const [result] = await tx.insert(users).values({
         name,
@@ -57,12 +59,22 @@ export const registrationAction = async (data: RegisterUserData) => {
         userName,
       });
 
-      console.log("Inserted User ID:", result.insertId);
-
       insertedUserId = Number(result.insertId);
+
+      if (role === "employer") {
+        await tx.insert(employers).values({
+          id: insertedUserId,
+          name,
+        });
+      }
+
+      if (role === "applicant") {
+        await tx.insert(applicants).values({
+          id: insertedUserId,
+        });
+      }
     });
 
-    // ONLY CHANGE: cookie now set outside transaction
     await createSessionAndSetCookies(insertedUserId);
 
     return {
@@ -86,13 +98,8 @@ export const loginAction = async (data: LoginData) => {
   try {
     const { email, password } = data;
 
-    console.log("Login Data Submitted:", data);
-
     const [user] = await db.select().from(users).where(eq(users.email, email));
 
-    console.log("Found User:", user);
-
-    // ONLY CHANGE: check user BEFORE using user.id
     if (!user) {
       return {
         status: "error",
@@ -109,7 +116,6 @@ export const loginAction = async (data: LoginData) => {
       };
     }
 
-    // ONLY CHANGE: moved here after validation
     await createSessionAndSetCookies(user.id);
 
     return {
