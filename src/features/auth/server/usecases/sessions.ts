@@ -27,7 +27,7 @@ const createUserSession = async ({
 
   const [session] = await tx.insert(sessions).values({
     id: hashedToken,
-    UserId: userId,
+    userId: userId,
     userAgent: userAgent,
     ip: ip,
     expiresAt: new Date(Date.now() + SESSION_LIFETIME * 1000),
@@ -86,7 +86,7 @@ export const validateSessionAndGetUser = async (token: string) => {
     })
     .from(sessions)
     .where(eq(sessions.id, hashedToken))
-    .innerJoin(users, eq(users.id, sessions.UserId));
+    .innerJoin(users, eq(users.id, sessions.userId));
 
   if (!user) return null;
 
