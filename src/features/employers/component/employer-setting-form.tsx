@@ -25,42 +25,46 @@ import { Controller, useForm } from "react-hook-form";
 
 import { toast } from "sonner";
 import { updateEmployerProfileAction } from "../server/employer-actions";
+import { EmployerProfileData, employerProfileSchema, organizationTypes, teamSizes } from "../employers.schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-const organizationTypesOPtions = [
-  "development",
-  "design",
-  "marketing",
-  "sales",
-  "hr",
-  "finance",
-] as const;
+// const organizationTypesOPtions = [
+//   "development",
+//   "design",
+//   "marketing",
+//   "sales",
+//   "hr",
+//   "finance",
+// ] as const;
 
-type organizationType = (typeof organizationTypesOPtions)[number];
+// type organizationType = (typeof organizationTypesOPtions)[number];
 
-const teamSizes = [
-  "1-10",
-  "11-50",
-  "51-200",
-  "201-500",
-  "501-1000",
-  "1000+",
-] as const;
-type teamSize = (typeof teamSizes)[number];
+// const teamSizes = [
+//   "1-10",
+//   "11-50",
+//   "51-200",
+//   "201-500",
+//   "501-1000",
+//   "1000+",
+// ] as const;
+// type teamSize = (typeof teamSizes)[number];
 
-interface IFormInput {
-  name: string;
-  description: string;
-  location: string;
-  yearOfEstablishment: string;
-  websiteUrl?: string;
-  organizationType: organizationType;
-  teamSize: teamSize;
-}
+// interface IFormInput {
+//   name: string;
+//   description: string;
+//   location: string;
+//   yearOfEstablishment: string;
+//   websiteUrl?: string;
+//   organizationType: organizationType;
+//   teamSize: teamSize;
+// }
 
 const EmployerSettingForm = () => {
-  const { register, handleSubmit, control } = useForm<IFormInput>();
+  const { register, handleSubmit, control , formState:{errors}} = useForm<EmployerProfileData>(
+    {resolver: zodResolver(employerProfileSchema)}
+  );
 
-  const handleFormSubmit = async (data: IFormInput) => {
+  const handleFormSubmit = async (data:EmployerProfileData ) => {
     console.log(data);
     const response = await updateEmployerProfileAction(data);
 
@@ -90,6 +94,9 @@ const EmployerSettingForm = () => {
                 placeholder="Enter company name"
               />
             </div>
+            {errors.name && (
+              <p className="text-sm text-red-600">{errors.name.message}</p>
+            )}
           </div>
 
           {/*Description*/}
@@ -105,6 +112,9 @@ const EmployerSettingForm = () => {
                 {...register("description")}
               ></Textarea>
             </div>
+             {errors.description && (
+              <p className="text-sm text-red-600">{errors.description.message}</p>
+            )}
           </div>
 
           {/* When you run const { control } = useForm(), you create a specific instance of a form. The <Controller /> component is isolated; it doesn't know which form it belongs to. Passing control={control} connects this specific input to that specific useForm hook. */}
@@ -125,7 +135,7 @@ const EmployerSettingForm = () => {
                         <SelectValue placeholder="Select organization type" />
                       </SelectTrigger>
                       <SelectContent>
-                        {organizationTypesOPtions.map((type) => (
+                        {organizationTypes.map((type) => (
                           <SelectItem key={type} value={type}>
                             {/* {capitalizeWords(type)} */}
                             {type}
