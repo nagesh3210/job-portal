@@ -1,3 +1,5 @@
+import "server-only";
+
 import mysql2 from "mysql2/promise";
 import { drizzle } from "drizzle-orm/mysql2";
 
