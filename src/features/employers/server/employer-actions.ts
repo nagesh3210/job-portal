@@ -5,9 +5,9 @@ import { db } from "@/config/db";
 import { employers } from "@/drizzle/schema";
 import { getCurrentUser } from "@/features/auth/server/auth.queries";
 import { eq } from "drizzle-orm";
-import { IFormInput } from "../employers.types";
+import { EmployerProfileData } from "../employers.schemas";
 
-export async function updateEmployerProfileAction(data: IFormInput) {
+export async function updateEmployerProfileAction(data: EmployerProfileData) {
   const currentUser = await getCurrentUser();
 
   if (!currentUser || currentUser.role !== "employer") {
@@ -29,11 +29,11 @@ export async function updateEmployerProfileAction(data: IFormInput) {
     .set({
       name,
       description,
-      location,
+      location : location || null,
       yearOfEstablishment: yearOfEstablishment
         ? parseInt(yearOfEstablishment)
         : null,
-      websiteUrl,
+      websiteUrl : websiteUrl || null,
       organizationType,
       teamSize,
       updatedAt: new Date().toISOString().slice(0, 19).replace("T", " "),

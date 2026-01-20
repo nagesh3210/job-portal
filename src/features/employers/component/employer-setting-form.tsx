@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -6,9 +7,7 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -22,73 +21,71 @@ import {
   MapPin,
 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
-
 import { toast } from "sonner";
 import { updateEmployerProfileAction } from "../server/employer-actions";
-import { EmployerProfileData, employerProfileSchema, organizationTypes, teamSizes } from "../employers.schemas";
+import {
+  EmployerProfileData,
+  employerProfileSchema,
+  organizationTypes,
+  teamSizes,
+} from "../employers.schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-// const organizationTypesOPtions = [
-//   "development",
-//   "design",
-//   "marketing",
-//   "sales",
-//   "hr",
-//   "finance",
-// ] as const;
+interface Props {
+  initialData?: Partial<EmployerProfileData>;
+}
 
-// type organizationType = (typeof organizationTypesOPtions)[number];
+const EmployerSettingForm = ({ initialData }: Props) => {
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm<EmployerProfileData>({
+    resolver: zodResolver(employerProfileSchema),
+    defaultValues: {
+      name: initialData?.name || "",
+      description: initialData?.description || "",
+      organizationType: initialData?.organizationType as any,
+      teamSize: initialData?.teamSize as any,
+      yearOfEstablishment: initialData?.yearOfEstablishment || "",
+      websiteUrl: initialData?.websiteUrl || "",
+      location: initialData?.location || "",
+      bannerImageUrl: initialData?.bannerImageUrl || "",
+    },
+  });
 
-// const teamSizes = [
-//   "1-10",
-//   "11-50",
-//   "51-200",
-//   "201-500",
-//   "501-1000",
-//   "1000+",
-// ] as const;
-// type teamSize = (typeof teamSizes)[number];
-
-// interface IFormInput {
-//   name: string;
-//   description: string;
-//   location: string;
-//   yearOfEstablishment: string;
-//   websiteUrl?: string;
-//   organizationType: organizationType;
-//   teamSize: teamSize;
-// }
-
-const EmployerSettingForm = () => {
-  const { register, handleSubmit, control , formState:{errors}} = useForm<EmployerProfileData>(
-    {resolver: zodResolver(employerProfileSchema)}
-  );
-
-  const handleFormSubmit = async (data:EmployerProfileData ) => {
-    console.log(data);
+  const handleFormSubmit = async (data: EmployerProfileData) => {
+    console.log("settings submit data", data);
     const response = await updateEmployerProfileAction(data);
 
-    if(response.status === "SUCCESS"){
+    if (response.status === "SUCCESS") {
       toast.success(response.message);
-    }
-    else{
+    } else {
       toast.error(response.message);
     }
-    
   };
 
   return (
     <Card>
       <CardContent>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-          {/* Company Name*/}
+        <form
+          onSubmit={handleSubmit(
+            handleFormSubmit,
+            (formErrors) => {
+              console.log("FORM ERRORS:", formErrors);
+              toast.error("Please fix the errors in the form");
+            }
+          )}
+          className="space-y-6"
+        >
+          {/* Company Name */}
           <div className="space-y-2">
             <Label htmlFor="companyName">Company Name</Label>
             <div className="relative">
-              <Building2 className="absolute left-3 top-3 transform -traslate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Building2 className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               <Input
                 id="companyName"
-                type="text"
                 className="pl-10"
                 {...register("name")}
                 placeholder="Enter company name"
@@ -99,45 +96,42 @@ const EmployerSettingForm = () => {
             )}
           </div>
 
-          {/*Description*/}
-
+          {/* Description */}
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
             <div className="relative">
-              <FileText className="absolute left-3 top-3  w-4 h-4 text-muted-foreground" />
+              <FileText className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
               <Textarea
                 id="description"
-                placeholder="Teall us about your company"
-                className="pl-10  min-h-[120px] resize-none"
+                className="pl-10 min-h-[120px] resize-none"
+                placeholder="Tell us about your company"
                 {...register("description")}
-              ></Textarea>
+              />
             </div>
-             {errors.description && (
-              <p className="text-sm text-red-600">{errors.description.message}</p>
+            {errors.description && (
+              <p className="text-sm text-red-600">
+                {errors.description.message}
+              </p>
             )}
           </div>
 
-          {/* When you run const { control } = useForm(), you create a specific instance of a form. The <Controller /> component is isolated; it doesn't know which form it belongs to. Passing control={control} connects this specific input to that specific useForm hook. */}
-          {/* Organization Type and Team Size - Two columns */}
+          {/* Organization Type & Team Size */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Organization Type */}
             <div className="space-y-2">
-              <Label htmlFor="organizationType">Organization Type *</Label>
-
+              <Label>Organization Type *</Label>
               <Controller
                 name="organizationType"
                 control={control}
                 render={({ field }) => (
                   <div className="relative">
-                    <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="pl-10 w-full ">
+                      <SelectTrigger className="pl-10 w-full">
                         <SelectValue placeholder="Select organization type" />
                       </SelectTrigger>
                       <SelectContent>
                         {organizationTypes.map((type) => (
                           <SelectItem key={type} value={type}>
-                            {/* {capitalizeWords(type)} */}
                             {type}
                           </SelectItem>
                         ))}
@@ -146,24 +140,28 @@ const EmployerSettingForm = () => {
                   </div>
                 )}
               />
+              {errors.organizationType && (
+                <p className="text-sm text-red-600">
+                  {errors.organizationType.message}
+                </p>
+              )}
             </div>
-            {/* Team Size */}
+
             <div className="space-y-2">
-              <Label htmlFor="teamSize">Team Size *</Label>
+              <Label>Team Size *</Label>
               <Controller
                 name="teamSize"
                 control={control}
                 render={({ field }) => (
                   <div className="relative">
-                    <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                    <Briefcase className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="pl-10 w-full ">
-                        <SelectValue placeholder="Select Team Size" />
+                      <SelectTrigger className="pl-10 w-full">
+                        <SelectValue placeholder="Select team size" />
                       </SelectTrigger>
                       <SelectContent>
                         {teamSizes.map((type) => (
                           <SelectItem key={type} value={type}>
-                            {/* {capitalizeWords(type)} */}
                             {type}
                           </SelectItem>
                         ))}
@@ -172,57 +170,68 @@ const EmployerSettingForm = () => {
                   </div>
                 )}
               />
+              {errors.teamSize && (
+                <p className="text-sm text-red-600">
+                  {errors.teamSize.message}
+                </p>
+              )}
             </div>
           </div>
 
-          {/* Year of Establishment and Location - Two columns */}
+          {/* Year & Location */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="yearOfEstablishment">
-                Year of Establishment *
-              </Label>
+              <Label>Year of Establishment *</Label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  id="yearOfEstablishment"
-                  type="text"
+                  className="pl-10"
                   placeholder="e.g., 2020"
                   maxLength={4}
-                  className="pl-10"
                   {...register("yearOfEstablishment")}
                 />
               </div>
+              {errors.yearOfEstablishment && (
+                <p className="text-sm text-red-600">
+                  {errors.yearOfEstablishment.message}
+                </p>
+              )}
             </div>
 
-            {/* Year of Establishment and Location - Two columns */}
             <div className="space-y-2">
-              <Label htmlFor="location">Location *</Label>
-
+              <Label>Location *</Label>
               <div className="relative">
-                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  id="location"
-                  type="text"
-                  placeholder="e.g., Pune, Bangalore"
                   className="pl-10"
+                  placeholder="e.g., Pune, Bangalore"
                   {...register("location")}
                 />
               </div>
+              {errors.location && (
+                <p className="text-sm text-red-600">
+                  {errors.location.message}
+                </p>
+              )}
             </div>
           </div>
-          {/* Website URL */}
+
+          {/* Website */}
           <div className="space-y-2">
-            <Label htmlFor="websiteUrl">Website URL (Optional)</Label>
+            <Label>Website URL (Optional)</Label>
             <div className="relative">
-              <Globe className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                id="websiteUrl"
-                type="text"
-                placeholder="https://www.yourcompany.com"
                 className="pl-10"
+                placeholder="https://www.yourcompany.com"
                 {...register("websiteUrl")}
               />
             </div>
+            {errors.websiteUrl && (
+              <p className="text-sm text-red-600">
+                {errors.websiteUrl.message}
+              </p>
+            )}
           </div>
 
           <Button type="submit">Save Changes</Button>
@@ -230,6 +239,6 @@ const EmployerSettingForm = () => {
       </CardContent>
     </Card>
   );
-  // Component implementation
 };
+
 export default EmployerSettingForm;
