@@ -18,6 +18,7 @@ import {
   Calendar,
   FileText,
   Globe,
+  Loader,
   MapPin,
 } from "lucide-react";
 import { Controller, useForm } from "react-hook-form";
@@ -30,6 +31,7 @@ import {
   teamSizes,
 } from "../employers.schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect, useRef } from "react";
 
 interface Props {
   initialData?: Partial<EmployerProfileData>;
@@ -40,7 +42,8 @@ const EmployerSettingForm = ({ initialData }: Props) => {
     register,
     handleSubmit,
     control,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty, isLoading, isSubmitting, isSubmitSuccessful },
   } = useForm<EmployerProfileData>({
     resolver: zodResolver(employerProfileSchema),
     defaultValues: {
@@ -55,12 +58,14 @@ const EmployerSettingForm = ({ initialData }: Props) => {
     },
   });
 
+  
   const handleFormSubmit = async (data: EmployerProfileData) => {
     console.log("settings submit data", data);
     const response = await updateEmployerProfileAction(data);
 
     if (response.status === "SUCCESS") {
       toast.success(response.message);
+      reset(data);
     } else {
       toast.error(response.message);
     }
@@ -70,13 +75,10 @@ const EmployerSettingForm = ({ initialData }: Props) => {
     <Card>
       <CardContent>
         <form
-          onSubmit={handleSubmit(
-            handleFormSubmit,
-            (formErrors) => {
-              console.log("FORM ERRORS:", formErrors);
-              toast.error("Please fix the errors in the form");
-            }
-          )}
+          onSubmit={handleSubmit(handleFormSubmit, (formErrors) => {
+            console.log("FORM ERRORS:", formErrors);
+            toast.error("Please fix the errors in the form");
+          })}
           className="space-y-6"
         >
           {/* Company Name */}
@@ -233,8 +235,17 @@ const EmployerSettingForm = ({ initialData }: Props) => {
               </p>
             )}
           </div>
+          <div className="flex items-center gap-4 pt-4">
+            <Button type="submit" disabled={!isDirty || isSubmitting}>
+              {isSubmitting && <Loader className="w-4 h-4 animate-spin" />}
+              {isSubmitting ? "Saving Changes ..." : "save Changes"}
+              
+            </Button> 
 
-          <Button type="submit">Save Changes</Button>
+            {!isDirty && (<p className="text-sm text-muted-foreground">No changes to save</p>)}
+
+          </div>
+
         </form>
       </CardContent>
     </Card>
