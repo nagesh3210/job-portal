@@ -1,3 +1,5 @@
+"use client";
+
 import { LogOutAction } from "@/features/auth/server/auth.action";
 import { cn } from "@/lib/utils";
 import {
@@ -12,25 +14,40 @@ import {
   LogOut,
 } from "lucide-react";
 import Link from "next/link";
-
+import { usePathname } from "next/navigation";
 
 const base = "/employer-dashboard";
 
 const navigationItems = [
-  { name: "Overview", icon: LayoutDashboard, href: base + "/" },
-  { name: "Employers Profile", icon: User },
-  { name: "Post a Job", icon: Plus },
-  { name: "My Jobs", icon: Briefcase },
-  { name: "Saved Candidate", icon: Bookmark },
-  { name: "Plans & Billing", icon: CreditCard },
-  { name: "All Companies", icon: Building },
+  { name: "Overview", icon: LayoutDashboard, href: base },
+  { name: "Employers Profile", icon: User, href: base + "/profile" },
+  { name: "Post a Job", icon: Plus, href: base + "/post-job" },
+  { name: "My Jobs", icon: Briefcase, href: base + "/jobs" },
+  { name: "Saved Candidate", icon: Bookmark, href: base + "/saved" },
+  { name: "Plans & Billing", icon: CreditCard, href: base + "/billing" },
+  { name: "All Companies", icon: Building, href: base + "/companies" },
   { name: "Settings", icon: Settings, href: base + "/settings" },
 ];
 
+function isLinkActive(href: string, pathname: string) {
+  const normalizedHref = href.replace(/\/$/, "");
+  const normalizedPath = pathname.replace(/\/$/, "");
 
-const EmployerSidebar=()=>
-{
-    return (
+  // Special case for the dashboard root
+  if (normalizedHref === "/employer-dashboard") {
+    return normalizedPath === "/employer-dashboard";
+  }
+
+  return (
+    normalizedPath === normalizedHref ||
+    normalizedPath.startsWith(normalizedHref + "/")
+  );
+}
+
+const EmployerSidebar = () => {
+  const pathname = usePathname();
+
+  return (
     <div className="w-64 bg-card border-r border-border fixed bottom-0 top-0">
       <div className="p-6">
         <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
@@ -45,18 +62,14 @@ const EmployerSidebar=()=>
           return (
             <Link
               key={curNav.name}
-              href={curNav.href || "#"}
-               className=" flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors"
-            //   className={cn(
-            //     "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-            //     isLinkActive({
-            //       href: curNav.href || "#",
-            //       pathname,
-            //       base: "/employer-dashboard",
-            //     }) && "text-primary bg-blue-300"
-            //   )}
+              href={curNav.href}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                isLinkActive(curNav.href, pathname) &&
+                  "text-primary bg-blue-500"
+              )}
             >
-              <Icon />
+              <Icon className="h-4 w-4" />
               {curNav.name}
             </Link>
           );
@@ -74,7 +87,6 @@ const EmployerSidebar=()=>
       </div>
     </div>
   );
-}
-
+};
 
 export default EmployerSidebar;
